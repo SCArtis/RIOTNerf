@@ -3,16 +3,22 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+//TODO: IP selber finden? Broadcastadresse?
+// 		Chat auf Website
+//		Slider für Eingabe -> -90 bis +90
+
 //COAP-Server
 var coap = require('coap');
 var coapServer = coap.createServer({type: 'udp6'});
 
+//var coapPath = 'fd1d:8d5c:12a5:0:585a:6a65:70bd:247e'
+var coapPath = 'ff02::1%lowpan0'
+
 coapServer.on('request', function(req, res){
   console.log('COAP: Request came in');
-
-  //NAch Methode unterscheiden (PUT, GET, etc).
-  /*
-  var method = req.method;
+  response.pipe(process.stdout);
+  res.end();
+  /*var method = req.method;
   console.log(method);
   var url = req.url;
   console.log(url);
@@ -23,15 +29,6 @@ coapServer.on('request', function(req, res){
   }
   res.end('Hello ' + req.url.split('/')[1] + '\n');
   */
-
-
-  //Payload in Textform 
-  var payload = req.payload;
-  console.log(payload.toString());
-  if(payload == 'hello'){
-    res.end('Welcome Home');
-  }
-  res.end('Gway!');
 });
 
 /**
@@ -67,29 +64,20 @@ app.get('/', function(req, res){
 //Web-Functionality
 io.on('connection', function(socket){
   //When User clicks Button on Webpage, 'chat message' is emitted, message is reversed and sent back
- 	socket.on('user input', function(msg){
+ 	socket.on('chat message', function(msg){
+	    console.log('message: '+ msg);
+	    var answer = 'links';
+	    var payload = '1';
 
-	    console.log('input: '+ msg);
+	    if( msg == 'links'){ payload='0';}
 
-	    io.emit('user input', msg);
+	    var request = coapPut('/periph/servohstep', payload);
+	    //hier URL herausziehen
+        console.log('request ' + JSON.stringify(request.url));
 
-		//-------------------------//-----------------------------//
-		//put periph/testled 1||0 als Payload (auch mal mit 2 testen)
-    var request = coap.request('localhost/');
-    //var request = coap.request('coap://[fd1d:8d5c:12a5:0:4be3:4e73:718d:600a]/periph/servos');
-		//var request = coap.request('coap://[fd1d:8d5c:12a5:0:4be3:4e73:718d:600a]/periph/testled');
-		//console.log('request ' + request.url);
+        console.log('payload ' + payload);
 
-		/*
-    var payload = '1';
-		request.write(payload);
-		console.log('payload ' + payload);
-    */
-		
-		//request.on('response', function(response){
-		//	console.log(response);
-			//response.pipe(process.stdout);
-		//});
+	    //io.emit('chat message', 'definitely not '+answer);
 		request.end();
 	});
 });
@@ -97,3 +85,23 @@ io.on('connection', function(socket){
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
+
+
+//path: suffix for coap://[fd1d:8d5c:12a5:0:585a:6a65:70bd:247e]/ 
+//returns: request
+/*function coapGet(path){
+	return coap.request(coapPath+''+path);
+}*/
+
+function coapPut(path, payload){
+	//var request = coapGet(path);
+	console.log(coapPath+path);
+	var request = coap.request({
+		method: 'PUT',
+		host: coapPath,
+		pathname: path,
+		confirmable: 'false'
+	});
+	request.write(payload);
+	return request;
+}

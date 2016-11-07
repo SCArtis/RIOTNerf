@@ -14,47 +14,35 @@
         var socket = io();
 
         $('#rightForm').submit(function(e){
-        socket.emit('user input', 'right');
+        socket.emit('chat message', 'right');
         //$('#inputFieldRight').val('rechts');
         return false;
         });
 
         $('#leftForm').submit(function(e){
         //socket.emit('chat message', $('#inputField').val());
-        socket.emit('user input', 'left');
+        socket.emit('chat message', 'links');
         //$('#inputField').val('rechts');
         return false;
         });
 
-        $('#fireForm').submit(function(e){
-        socket.emit('user input', 'fire');
-        //$('#inputFieldRight').val('rechts');
-        return false;
-        });
-
-        socket.on('user input', function(msg){
-          $('#messages').append($('<li>').text(msg));
+        //socket.on('chat message', function(msg){
+         // $('#messages').append($('<li>').text(msg));
           //$('#inputFieldRight').val(msg);
-        });
+        //});
       });
 
     </script>
   </head>
   <body>
     <div id="content-Main" align="center">
-
     <ul id="messages"></ul>
-
-    <form id="leftForm" action=""><button>Links</button></form>
-
+    <form id="leftForm" action="">
+      <button>Links</button>
+    </form>
     <form id="rightForm" action="">
       <!--<input id="inputFieldRight" />--><button>Rechts</button>
     </form>
-
-    <form id="fireForm" action="">
-      <!--<input id="inputFieldRight" />--><button>Fire!</button>
-    </form>
-
   </div>
   </body>
 </html>
